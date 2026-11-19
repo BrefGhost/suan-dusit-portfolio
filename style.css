@@ -30,11 +30,14 @@ body{background:radial-gradient(900px 500px at 100% 0,#dff0ff,transparent 60%),v
 .project-grid{grid-template-columns:repeat(6,1fr);gap:24px}.project-card{grid-column:span 2;transition:transform .35s var(--spring),box-shadow .3s}
 .project-grid[data-n="7"] .project-card:nth-child(1),.project-grid[data-n="7"] .project-card:nth-child(2),.project-grid[data-n="7"] .project-card:nth-child(6),.project-grid[data-n="7"] .project-card:nth-child(7),.project-grid[data-n="2"] .project-card{grid-column:span 3}
 .project-grid[data-n="1"] .project-card{grid-column:2/span 4}
-.project-card.reveal{animation:enter .9s var(--spring) both;animation-play-state:paused}.project-card.reveal.in{animation-play-state:running}
+/* 8 cards on a 6-column grid: 2 wide cards + 3 + 3, so the last row is never left with a gap */
+.project-grid[data-n="8"] .project-card:nth-child(1),.project-grid[data-n="8"] .project-card:nth-child(2){grid-column:span 3}
+/* fill-mode "backwards" (not "both"): a finished "both" animation keeps transform:none forever and silently overrides the hover lift and the 3D tilt */
+.project-card.reveal{animation:enter .9s var(--spring) backwards;animation-play-state:paused}.project-card.reveal.in{animation-play-state:running}
 @keyframes enter{from{opacity:0;transform:translateY(60px) scale(.88) rotate(-2deg)}to{opacity:1;transform:none}}
 .project-card:hover{box-shadow:0 30px 70px #2563eb3a}
 .project-visual{height:240px}.visual-art{transition:transform .5s var(--spring)}.project-card:hover .visual-art{transform:scale(1.1) rotate(-2deg)}
-.project-visual::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,#ffffff33 50%,transparent 60%);transform:translateX(-120%);transition:transform .8s}.project-card:hover .project-visual::after{transform:translateX(120%)}
+.project-visual::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 40%,#ffffff33 50%,transparent 60%);transform:translateX(-120%);transition:transform .8s}.project-card:hover .project-visual::after{transform:translateX(120%)}
 .visual-art{gap:12px}.visual-art strong{font-size:1rem;letter-spacing:.08em}
 .m-labs{display:flex;gap:12px;align-items:flex-end;margin-bottom:12px}.m-labs i{width:62px;height:46px;border-radius:9px;background:linear-gradient(135deg,#fff,#cfe6ff);border:3px solid #fff;box-shadow:0 10px 20px #0a1f5a55;position:relative}.m-labs i:nth-child(2){width:78px;height:58px}.m-labs i::after{content:"";position:absolute;left:50%;bottom:-14px;width:14px;height:10px;margin-left:-7px;background:#fff;border-radius:2px}
 .m-win{width:176px;padding:10px;border-radius:14px;background:#ffffffee;box-shadow:0 16px 34px #0a1f5a55;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.m-win b{height:7px;border-radius:9px;background:#b9d6ff}.m-win u{grid-column:1/-1;height:38px;border-radius:9px;background:linear-gradient(120deg,#2563eb,#38bdf8)}.m-win s{height:24px;border-radius:7px;background:#e0efff}.m-tbl s{grid-column:1/-1;height:13px}
@@ -78,7 +81,7 @@ dialog[open]::backdrop{animation:bd .4s ease both}@keyframes bd{from{opacity:0}}
 .btn{position:relative;overflow:hidden}.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff66 50%,transparent 65%);transform:translateX(-130%);transition:transform .7s}.btn:hover::after{transform:translateX(130%)}
 .btn-blue{box-shadow:0 13px 28px #2563eb55,inset 0 2px 0 #ffffff55}
 .filter[aria-pressed="true"]{background:linear-gradient(135deg,#2563eb,#38bdf8);animation:pressed .6s var(--spring)}@keyframes pressed{0%{scale:.8}60%{scale:1.15}100%{scale:1}}
-.project-card.reveal:nth-child(2){animation-delay:.08s}.project-card.reveal:nth-child(3){animation-delay:.16s}.project-card.reveal:nth-child(4){animation-delay:.24s}.project-card.reveal:nth-child(5){animation-delay:.32s}.project-card.reveal:nth-child(6){animation-delay:.4s}.project-card.reveal:nth-child(7){animation-delay:.48s}
+.project-card.reveal:nth-child(2){animation-delay:.08s}.project-card.reveal:nth-child(3){animation-delay:.16s}.project-card.reveal:nth-child(4){animation-delay:.24s}.project-card.reveal:nth-child(5){animation-delay:.32s}.project-card.reveal:nth-child(6){animation-delay:.4s}.project-card.reveal:nth-child(7){animation-delay:.48s}.project-card.reveal:nth-child(8){animation-delay:.56s}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 .avatar{animation:bob 3.4s ease-in-out infinite}
 @keyframes wig{0%,88%,100%{transform:none}91%{transform:rotate(-14deg) scale(1.12)}94%{transform:rotate(10deg)}97%{transform:rotate(-5deg)}}
@@ -86,7 +89,7 @@ dialog[open]::backdrop{animation:bd .4s ease both}@keyframes bd{from{opacity:0}}
 .division-pills a{transition:transform .35s var(--spring),background .2s,color .2s;font-weight:500}.division-pills a:hover{background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;transform:translateY(-4px) rotate(-2deg)}
 .division-pills a:nth-child(1)::before{content:"🏢 "}.division-pills a:nth-child(2)::before{content:"🛏️ "}.division-pills a:nth-child(3)::before{content:"🍳 "}.division-pills a:nth-child(4)::before{content:"💪 "}
 .logo-placeholder{transition:transform .4s var(--spring)}.brand:hover .logo-placeholder{transform:rotate(-10deg) scale(1.12)}
-.up{position:fixed;right:22px;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;border:0;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;font:700 1.4rem Kanit;box-shadow:0 14px 30px #2563eb66;z-index:200;transform:scale(0);transition:transform .5s var(--spring);cursor:pointer}.up.show{transform:scale(1);animation:bob 2.4s ease-in-out .5s infinite}.up:hover{filter:brightness(1.12)}
+.up{position:fixed;right:22px;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;border:0;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;font:700 1.4rem Kanit;box-shadow:0 14px 30px #2563eb66;z-index:200;transform:scale(0);visibility:hidden;transition:transform .5s var(--spring),visibility 0s .5s;cursor:pointer}.up.show{transform:scale(1);visibility:visible;transition:transform .5s var(--spring);animation:bob 2.4s ease-in-out .5s infinite}.up:hover{filter:brightness(1.12)}
 
 /* ===== v3: preloader and accent theming ===== */
 @property --acc{syntax:'<color>';inherits:true;initial-value:#38bdf8}

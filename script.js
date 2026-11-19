@@ -126,17 +126,19 @@ const grid=document.getElementById('projectGrid'),teamGrid=document.getElementBy
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function renderProjects(filter='all'){
   const visible=projects.filter(p=>filter==='all'||p.division===filter);
+  // Card count drives the grid layout in CSS; set it here so it is correct even when the motion layer is off.
+  grid.dataset.n=visible.length;
   grid.innerHTML=visible.map(p=>`<article class="project-card reveal">
     <div class="project-visual ${p.localVideo?'has-local-video':''}" style="--visual-bg:${p.color}" ${p.localVideo?'':`role="img" aria-label="ภาพประกอบสำหรับ${escapeHtml(p.title)}"`}>
       ${p.image?`<img class="project-image" src="${escapeHtml(p.image)}" alt="ภาพผลงาน ${escapeHtml(p.title)}" loading="lazy"><span class="media-note">${p.localVideo?'โปสเตอร์คลิปสื่อการสอน':p.id===8?'ภาพปกอินโฟกราฟิก':'ภาพกิจกรรม / ผลงานจริง'}</span>`:`<div class="visual-art">${mock(p.id)}<strong>${escapeHtml(p.short)}</strong></div><span class="media-note">ภาพกราฟิกตัวอย่าง</span>`}
       ${p.localVideo?`<button class="project-video-launch" type="button" data-project-video="${p.id}" aria-label="เปิดหน้ารับชมคลิป ${escapeHtml(p.title)}"><span aria-hidden="true">▶</span><strong>ชมคลิปผลงาน</strong></button>`:''}
     </div>
-    <div class="project-body"><span class="tag">${escapeHtml(p.category)}</span><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.description)}</p><div class="project-meta"><div><strong>ฝ่าย:</strong> ${escapeHtml(p.divisionName)}</div><div><strong>${p.collaborative?'ผลงานร่วม 5 คน:':'ผู้รับผิดชอบ:'}</strong> ${p.people.map(i=>escapeHtml(interns[i].name)).join(', ')}</div></div><button class="detail-button" type="button" data-project="${p.id}" aria-label="ดูรายละเอียด ${escapeHtml(p.title)}">ดูรายละเอียดโปรเจกต์ ↗</button></div>
+    <div class="project-body"><span class="tag">${escapeHtml(p.category)}</span><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.description)}</p><div class="project-meta"><div><strong>ฝ่าย:</strong> ${escapeHtml(p.divisionName)}</div><div><strong>${p.collaborative?`ผลงานร่วม ${p.people.length} คน:`:'ผู้รับผิดชอบ:'}</strong> ${p.people.map(i=>escapeHtml(interns[i].name)).join(', ')}</div></div><button class="detail-button" type="button" data-project="${p.id}" aria-label="ดูรายละเอียด ${escapeHtml(p.title)}">ดูรายละเอียดโปรเจกต์ ↗</button></div>
   </article>`).join('');
 }
 function selectFilter(key){filters.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===key)));renderProjects(key)}
 filters.addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b)selectFilter(b.dataset.filter)});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(b){selectFilter(b.dataset.jump);document.getElementById('mobileNav').classList.remove('open');document.getElementById('menuToggle').setAttribute('aria-expanded','false')}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(b){selectFilter(b.dataset.jump);closeMenu()}});
 
 function renderProjectDetails(p){
   const modalVisual=document.getElementById('modalVisual');
@@ -144,7 +146,8 @@ function renderProjectDetails(p){
   const gallery=document.getElementById('modalGallery');
   modalVisual.style.background=p.color;
   // Only projects 4 and 5 get an in-page HTML5 video player. All other projects stay unchanged.
-  modalIcon.setAttribute('aria-hidden',p.localVideo?'false':'true');
+  // Real cover images carry meaningful alt text, so only hide the decorative mock graphics from screen readers.
+  modalIcon.setAttribute('aria-hidden',(p.localVideo||p.image)?'false':'true');
   if(p.localVideo){
     modalIcon.innerHTML=`<div class="hotel-video-stage" data-hotel-video-stage>
       <video class="hotel-video-player" controls playsinline preload="metadata" poster="${escapeHtml(p.image)}" aria-label="วิดีโอ ${escapeHtml(p.title)}">
@@ -170,7 +173,7 @@ function renderProjectDetails(p){
     if(p.id===8){
       html+=`<p class="hotel-gallery-intro">ตัวอย่างสื่อประชาสัมพันธ์สำหรับนำเสนอขายแก่ลูกค้า คลิกภาพเพื่อดูในพื้นที่แสดงภาพขนาดใหญ่ด้านบน</p><div class="hotel-gallery-grid">${p.gallery.map((src,i)=>`<article class="hotel-gallery-card"><button type="button" class="hotel-gallery-image" data-src="${escapeHtml(src)}" aria-label="ดูภาพ ${escapeHtml(p.galleryCaptions[i][0])}"><img src="${escapeHtml(src)}" alt="อินโฟกราฟิก ${escapeHtml(p.galleryCaptions[i][0])}" loading="lazy"></button><div class="hotel-gallery-caption"><strong>${escapeHtml(p.galleryCaptions[i][0])}</strong><p>${escapeHtml(p.galleryCaptions[i][1])}</p></div></article>`).join('')}</div>`;
     }else{
-      html+=`<h3>${escapeHtml(p.galleryTitle||'ภาพผลงาน')} (${p.gallery.length} ภาพ)</h3><div class="gallery-thumbs">${p.gallery.map((src,i)=>`<button type="button" class="gallery-thumb ${i===0?'active':''}" data-src="${escapeHtml(src)}" aria-label="ดูภาพที่ ${i+1}"><img src="${escapeHtml(src)}" alt="ภาพประกอบ ${escapeHtml(p.title)} ลำดับที่ ${i+1}" loading="lazy"></button>`).join('')}</div>`;
+      html+=`<h3>${escapeHtml(p.galleryTitle||'ภาพผลงาน')} (${p.gallery.length} ภาพ)</h3><div class="gallery-thumbs">${p.gallery.map((src,i)=>`<button type="button" class="gallery-thumb" data-src="${escapeHtml(src)}" aria-label="ดูภาพที่ ${i+1}"><img src="${escapeHtml(src)}" alt="ภาพประกอบ ${escapeHtml(p.title)} ลำดับที่ ${i+1}" loading="lazy"></button>`).join('')}</div>`;
     }
   }
   if(p.videos?.length){
@@ -180,7 +183,7 @@ function renderProjectDetails(p){
     html+=`<div class="design-source"><h3>ต้นฉบับงานออกแบบ</h3><p>ดูรายละเอียดหน้าจอและองค์ประกอบ UI/UX ของเว็บไซต์ใน Figma</p><a class="figma-link" href="${escapeHtml(p.figmaUrl)}" target="_blank" rel="noopener noreferrer">เปิดผลงานบน Figma ↗</a></div>`;
   }
   if(p.collaborative){
-    html+=`<section class="joint-credit"><h3>เครดิตผลงานร่วม</h3><p>โปรเจกต์นี้เป็นผลงานร่วมกันของนักศึกษาฝึกงานทั้ง 5 คน จาก 4 ฝ่าย</p><div class="credit-list">${p.people.map(i=>`<div><strong>${escapeHtml(interns[i].name)}</strong><span>${escapeHtml(interns[i].division)} · ${escapeHtml(interns[i].id)}</span></div>`).join('')}</div></section>`;
+    html+=`<section class="joint-credit"><h3>เครดิตผลงานร่วม</h3><p>โปรเจกต์นี้เป็นผลงานร่วมกันของนักศึกษาฝึกงานทั้ง ${p.people.length} คน จาก ${new Set(p.people.map(i=>interns[i].division)).size} ฝ่าย</p><div class="credit-list">${p.people.map(i=>`<div><strong>${escapeHtml(interns[i].name)}</strong><span>${escapeHtml(interns[i].division)} · ${escapeHtml(interns[i].id)}</span></div>`).join('')}</div></section>`;
   }
   gallery.innerHTML=html;
 
@@ -189,8 +192,11 @@ function renderProjectDetails(p){
   document.getElementById('modalTitle').textContent=p.title;
   document.getElementById('modalDescription').textContent=p.description;
   document.getElementById('modalDivision').textContent=p.divisionName;
-  document.getElementById('modalPeople').textContent=(p.collaborative?'ผลงานร่วม 5 คน: ':'')+p.people.map(i=>interns[i].name+' ('+interns[i].id+')').join(', ');
-  modal.showModal();
+  document.getElementById('modalPeople').textContent=(p.collaborative?`ผลงานร่วม ${p.people.length} คน: `:'')+p.people.map(i=>interns[i].name+' ('+interns[i].id+')').join(', ');
+  // The same <dialog> is reused for every project: reset its scroll so a new project never opens halfway down.
+  // (Must run after showModal(): scrollTop is ignored while the dialog is display:none.)
+  if(!modal.open)modal.showModal();
+  modal.scrollTop=0;
   if(p.localVideo){
     const stage=modalIcon.querySelector('[data-hotel-video-stage]');
     const player=stage.querySelector('video');
@@ -227,22 +233,27 @@ teamGrid.innerHTML=interns.map(p=>`<article class="team-card id-badge" tabindex=
   <span class="badge-barcode" aria-hidden="true">${barcode(p.id)}</span>
 </article>`).join('');
 const toggle=document.getElementById('menuToggle'),nav=document.getElementById('mobileNav');
-toggle.addEventListener('click',()=>{const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'ปิดเมนู':'เปิดเมนู');toggle.textContent=open?'✕':'☰'});
-nav.addEventListener('click',e=>{if(e.target.closest('a')){nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','เปิดเมนู');toggle.textContent='☰'}});
+function setMenu(open){nav.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'ปิดเมนู':'เปิดเมนู');toggle.textContent=open?'✕':'☰'}
+function closeMenu(){setMenu(false)}
+toggle.addEventListener('click',()=>setMenu(!nav.classList.contains('open')));
+nav.addEventListener('click',e=>{if(e.target.closest('a'))closeMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&nav.classList.contains('open')){closeMenu();toggle.focus()}});
 renderProjects();
 
 /* ===== v2 upgrades: Gen Z bounce layer ===== */
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,$=s=>document.querySelector(s);
 $('#mt').innerHTML=Array(8).fill(['ฝ่ายสำนักกิจการพิเศษ','ฝ่ายโรงแรม','ฝ่ายครัว','ฝ่ายบริหารกาย'].map(n=>`<span>${n}</span><span>✦</span>`).join('')).join('');
-const sync=()=>{grid.dataset.n=grid.children.length};sync();
 if(!RM){
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const t=e.target;t.classList.add('in');io.unobserve(t);if(t.classList.contains('rv'))setTimeout(()=>{t.classList.remove('rv','in');t.style.transitionDelay=''},1300)}),{threshold:.12});
 const watch=()=>grid.querySelectorAll('.project-card').forEach(c=>io.observe(c));watch();
-new MutationObserver(()=>{sync();watch()}).observe(grid,{childList:true});
+new MutationObserver(watch).observe(grid,{childList:true});
 document.querySelectorAll('.eyebrow,.section-title,.feature,.team-card,.division-strip,.filters,.closing .container>*').forEach((el,i)=>{if(el.closest('.hero'))return;el.classList.add('rv');el.style.transitionDelay=(i%4)*.09+'s';io.observe(el)});
 // headline bounce-in
+// Intl.Segmenter is missing in older browsers (e.g. Firefox < 125); without this guard the throw aborted every effect below it.
+if(typeof Intl!=='undefined'&&Intl.Segmenter){
 const seg=new Intl.Segmenter('th',{granularity:'word'});let k=0;
 const wrapW=n=>[...n.childNodes].forEach(c=>{if(c.nodeType==3){const f=document.createDocumentFragment();for(const{segment:s}of seg.segment(c.textContent)){const sp=document.createElement('span');sp.className='w';sp.textContent=s;sp.style.animationDelay=(k++*.07+.15)+'s';f.append(sp)}c.replaceWith(f)}else wrapW(c)});wrapW($('.hero h1'));
+}
 // count-up stats
 document.querySelectorAll('.hero-statistics strong').forEach(b=>{const n=+b.textContent;b.textContent='00';let t=0;setTimeout(()=>{const iv=setInterval(()=>{b.textContent=String(Math.round(n*++t/10)).padStart(2,'0');if(t>=10)clearInterval(iv)},90)},2200)});
 // jelly + hop
@@ -268,15 +279,18 @@ const TL='.project-card,.feature',MG='.btn,.filter';
 document.addEventListener('pointermove',e=>{if(e.pointerType!='mouse'||(drag&&drag.on))return;const el=e.target.closest(TL);if(el){const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transition='transform .12s';el.style.transform=`perspective(800px) translateY(-8px) rotateX(${-y*8}deg) rotateY(${x*10}deg)`}const b=e.target.closest(MG);if(b){const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.25}px,${(e.clientY-r.top-r.height/2)*.35}px) scale(1.06)`}});
 document.addEventListener('pointerout',e=>{for(const [s,t] of [[TL,'tilt'],[MG,'mag']]){const el=e.target.closest(s);if(el&&!el.contains(e.relatedTarget)){el.style.transition='';el.style.transform=''}}});
 // hero 3D parallax
-const art=$('.hero-art');if(art&&innerWidth>1020)document.addEventListener('mousemove',e=>{const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;art.style.transform=`perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*9}deg)`});
+// Width is checked on every move (not once at load) so the CSS scale() used on narrower screens is never overridden after a resize.
+const art=$('.hero-art');if(art)document.addEventListener('mousemove',e=>{if(innerWidth<=1020){if(art.style.transform)art.style.transform='';return}const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;art.style.transform=`perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*9}deg)`});
 // cursor blob
 const cur=document.createElement('div');cur.className='cur';document.body.append(cur);let mx=0,my=0,cx=0,cy=0;
 addEventListener('pointermove',e=>{if(e.pointerType!='mouse')return;mx=e.clientX;my=e.clientY;cur.classList.add('on');const hot=e.target.closest('a,button'),big=!hot&&e.target.closest(DR);cur.classList.toggle('hot',!!hot);cur.classList.toggle('big',!!big||!!(drag&&drag.on));cur.textContent=cur.classList.contains('big')?'ลาก':''});
 document.addEventListener('mouseout',e=>{if(!e.relatedTarget)cur.classList.remove('on')});
-(function loop(){cx+=(mx-cx)*.2;cy+=(my-cy)*.2;cur.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(loop)})();
+(function loop(){const dx=mx-cx,dy=my-cy;if(Math.abs(dx)+Math.abs(dy)>.1){cx+=dx*.2;cy+=dy*.2;cur.style.transform=`translate(${cx}px,${cy}px)`}requestAnimationFrame(loop)})();
 }
 // scroll-velocity skew
-let ly=scrollY,sv=0;(function sk(){const v=scrollY-ly;ly=scrollY;sv+=(v-sv)*.12;const st=document.documentElement.style;st.setProperty('--sk',Math.max(-3,Math.min(3,sv*.15))+'deg');st.setProperty('--sk2',Math.max(-14,Math.min(14,-sv*.5))+'deg');requestAnimationFrame(sk)})();
+// sv decays toward 0 but never reaches it exactly, so the old loop rewrote root custom properties (and restyled the whole page)
+// every frame for minutes after each scroll. Round the values and only write when they actually change.
+let ly=scrollY,sv=0,lastSk='',lastSk2='';(function sk(){const v=scrollY-ly;ly=scrollY;sv+=(v-sv)*.12;if(Math.abs(sv)<.01)sv=0;const st=document.documentElement.style;const a=(Math.round(Math.max(-3,Math.min(3,sv*.15))*100)/100||0)+'deg',b=(Math.round(Math.max(-14,Math.min(14,-sv*.5))*100)/100||0)+'deg';if(a!==lastSk){st.setProperty('--sk',a);lastSk=a}if(b!==lastSk2){st.setProperty('--sk2',b);lastSk2=b}requestAnimationFrame(sk)})();
 }
 
 /* ===== v2.1 smooth-motion layer ===== */
@@ -287,18 +301,22 @@ let pp=0,ps=scrollY;
 // inertial mouse-wheel scrolling (trackpads and touch keep native scrolling)
 if(matchMedia('(pointer:fine)').matches){let tgt=scrollY,cur=scrollY,run=false;
 const mx=()=>document.documentElement.scrollHeight-innerHeight;
-addEventListener('wheel',e=>{const d=e.deltaY*(e.deltaMode==1?32:1);if(e.ctrlKey||Math.abs(d)<50||Math.abs(e.deltaX)>Math.abs(d)||document.querySelector('dialog[open]'))return;e.preventDefault();if(!run)tgt=cur=scrollY;tgt=Math.max(0,Math.min(mx(),tgt+d));run=true},{passive:false});
+// While the preloader is up the body is overflow:hidden; scrollTo() would still move the page behind it, so skip until ready.
+addEventListener('wheel',e=>{const d=e.deltaY*(e.deltaMode==1?32:1);if(!document.body.classList.contains('ready')||e.ctrlKey||Math.abs(d)<50||Math.abs(e.deltaX)>Math.abs(d)||document.querySelector('dialog[open]'))return;e.preventDefault();if(!run)tgt=cur=scrollY;tgt=Math.max(0,Math.min(mx(),tgt+d));run=true},{passive:false});
 (function f(){if(run){cur+=(tgt-cur)*.1;if(Math.abs(tgt-cur)<.5){cur=tgt;run=false}scrollTo({top:cur,behavior:'instant'})}requestAnimationFrame(f)})()}
 // sliding nav pill
 const nav=$('.desktop-nav'),pill=document.createElement('i');pill.className='nav-pill';nav.append(pill);
 const links=[...nav.querySelectorAll('a')],secs=links.map(a=>document.querySelector(a.getAttribute('href')));let act=null,last=-2;
 const go=a=>{if(!a){pill.style.opacity=0;return}pill.style.opacity=1;pill.style.left=a.offsetLeft+'px';pill.style.width=a.offsetWidth+'px'};
 links.forEach(a=>{a.addEventListener('pointerenter',()=>go(a));a.addEventListener('pointerleave',()=>go(act))});
+addEventListener('resize',()=>go(act),{passive:true});
 // card spotlight follows the pointer
 document.addEventListener('pointermove',e=>{const c=e.target.closest('.project-card,.team-card');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')});
 // one smooth loop: progress bar, header, parallax, active link
-(function loop(){const y=scrollY,m=document.documentElement.scrollHeight-innerHeight;ps+=(y-ps)*.12;pp+=(y/(m||1)-pp)*.15;prog.style.transform=`scaleX(${pp})`;hd.classList.toggle('sc',y>40);
-if(y<innerHeight*1.3){if(heroIn)heroIn.style.translate=`0 ${ps*.1}px`;if(heroArt)heroArt.style.translate=`0 ${-ps*.06}px`}
+let lastPP=-1,lastPS=-1;
+(function loop(){const y=scrollY,m=document.documentElement.scrollHeight-innerHeight;ps+=(y-ps)*.12;if(Math.abs(y-ps)<.05)ps=y;const tp=Math.min(1,Math.max(0,y/(m||1)));pp+=(tp-pp)*.15;if(Math.abs(tp-pp)<.0005)pp=tp;
+if(pp!==lastPP){prog.style.transform=`scaleX(${pp})`;lastPP=pp}hd.classList.toggle('sc',y>40);
+if(y<innerHeight*1.3&&ps!==lastPS){lastPS=ps;if(heroIn)heroIn.style.translate=`0 ${ps*.1}px`;if(heroArt)heroArt.style.translate=`0 ${-ps*.06}px`}
 document.querySelectorAll('.visual-art').forEach(a=>{const r=a.parentElement.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;a.style.translate=`0 ${(r.top+r.height/2-innerHeight/2)*-.04}px`});
 let k=-1;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<innerHeight*.45)k=i});if(k!==last){last=k;act=links[k]||null;go(act)}
 requestAnimationFrame(loop)})();
@@ -308,7 +326,7 @@ requestAnimationFrame(loop)})();
 document.querySelectorAll('.section-title span[style]').forEach(s=>s.classList.add('gt'));
 const up=document.createElement('button');up.className='up';up.setAttribute('aria-label','กลับขึ้นด้านบน');up.textContent='↑';document.body.append(up);
 up.onclick=()=>{scrollTo({top:0,behavior:'smooth'});if(window.conf)conf(innerWidth-50,innerHeight-60,24)};
-addEventListener('scroll',()=>up.classList.toggle('show',scrollY>700),{passive:true});
+const syncUp=()=>up.classList.toggle('show',scrollY>700);addEventListener('scroll',syncUp,{passive:true});syncUp();
 if(!RM){
 const hart=$('.hero-art');
 if(hart)[['ring','left:2%;top:6%'],['cube','right:14%;top:2%'],['ball','left:46%;bottom:2%'],['cube sm','left:-3%;bottom:30%'],['ring sm','right:0;top:44%']].forEach(([c,s],i)=>{const d=document.createElement('div');d.className='sparkle shp '+c;d.style.cssText=s+`;animation-delay:${-i*1.3}s`;hart.append(d)});
