@@ -416,3 +416,55 @@ dialog[open]::backdrop{animation:bd .4s ease both}@keyframes bd{from{opacity:0}}
 .hotel-video-info code{overflow-wrap:anywhere;background:#e5eefc;padding:2px 6px;border-radius:5px;color:#1d4ed8;font-size:.85em}
 @media(max-width:600px){.project-video-launch{min-width:110px;padding:8px 12px}.project-video-launch span{width:43px;height:43px}.modal-top.has-local-video{max-height:none}.hotel-video-stage{min-height:180px}}
 @media(prefers-reduced-motion:reduce){.project-visual.has-local-video .project-image,.project-video-launch{transition:none}}
+
+/* ===== v5: uncropped covers, clickable cards, justified gallery, full-screen image viewer ===== */
+/* Every cover poster is 16:9 (1672x941). A fixed 240px-tall box with object-fit:cover cut off the poster's text,
+   so the box now takes the image's own ratio and nothing is cropped at any card width. */
+.project-card{cursor:pointer}
+.project-visual{height:auto;aspect-ratio:16/9}
+.project-visual .project-image{object-fit:cover}
+
+/* Detail window: wider so galleries have room; cover shown whole and opens the viewer */
+#projectModal{width:min(880px,calc(100% - 30px))}
+.modal-top.has-image{height:auto;aspect-ratio:16/9;background:#0b1b42!important}
+.modal-cover-button{position:relative;display:block;width:100%;height:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.modal-cover-button .modal-cover-image{width:100%;height:100%;object-fit:contain}
+.zoom-hint{position:absolute;right:14px;bottom:14px;padding:6px 12px;border-radius:99px;background:#0b1b42cc;color:#fff;font:500 .78rem Prompt,sans-serif;border:1px solid #ffffff55;opacity:.9;transition:opacity .2s,transform .2s}
+.modal-cover-button:hover .zoom-hint,.modal-cover-button:focus-visible .zoom-hint{opacity:1;transform:translateY(-2px)}
+.gallery-hint{font-size:.8rem!important;line-height:1.6!important;margin:-4px 0 12px!important}
+
+/* Justified thumbnails: --r (width/height) is set from each photo, every image is shown whole and rows share one height */
+.gallery-thumbs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.gallery-thumb{--r:1.333;flex:var(--r) 1 calc(var(--r) * 120px);max-width:calc(var(--r) * 280px);aspect-ratio:var(--r);padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#edf4ff;cursor:zoom-in}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.gallery-thumb:hover img,.gallery-thumb:focus-visible img{transform:scale(1.04)}
+@media(max-width:500px){.gallery-thumb{flex-basis:calc(var(--r) * 105px)}}
+
+/* Hotel infographics (3:4 posters) and TikTok covers: boxes match the artwork ratio */
+.hotel-gallery-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.hotel-gallery-image img,.hotel-gallery-image img[src]{height:auto;aspect-ratio:1086/1448}
+@media(max-width:580px){.hotel-gallery-image img{height:auto}}
+.video-preview-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.video-preview-thumb{aspect-ratio:868/1886}
+
+/* Full-screen viewer */
+.lightbox{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:#040b1cf2;color:#fff;overflow:hidden;box-shadow:none}
+.lightbox[open]{animation:lbfade .25s ease}@keyframes lbfade{from{opacity:0}}
+.lightbox::backdrop{background:#000c}
+.lb-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:66px 76px 92px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#lbImg{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;will-change:transform;border-radius:6px;box-shadow:0 20px 60px #0008;cursor:zoom-in;-webkit-user-drag:none}
+.lb-stage.zoomed #lbImg{cursor:grab}.lb-stage.zoomed:active #lbImg{cursor:grabbing}
+.lb-bar{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(#000a,transparent);pointer-events:none}
+.lb-bar>*{pointer-events:auto}
+.lb-count{font:600 .92rem Kanit,sans-serif;opacity:.92}
+.lb-tools{display:flex;align-items:center;gap:6px}
+.lb-tools button,.lb-nav{display:grid;place-items:center;width:42px;height:42px;padding:0;border:1px solid #ffffff45;border-radius:50%;background:#ffffff1f;color:#fff;font-size:1.25rem;line-height:1;backdrop-filter:blur(8px);transition:background .2s}
+.lb-tools button:hover,.lb-nav:hover,.lb-tools button[aria-pressed="true"]{background:#ffffff45}
+.lb-zoom{min-width:52px;text-align:center;font:500 .82rem Kanit,sans-serif}
+.lb-nav{position:absolute;top:50%;z-index:2;width:54px;height:54px;margin-top:-27px;font-size:2rem}
+.lb-prev{left:12px}.lb-next{right:12px}
+.lb-nav[hidden],.lb-tools [hidden]{display:none}
+.lb-caption{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:16px 20px 20px;text-align:center;background:linear-gradient(transparent,#000b);pointer-events:none}
+.lb-caption strong{display:block;font:600 1rem/1.4 Kanit,sans-serif}
+.lb-caption span{font-size:.8rem;color:#cfe0ff}
+@media(max-width:600px){.lb-stage{padding:58px 6px 84px}.lb-nav{top:auto;bottom:76px;margin-top:0;width:42px;height:42px;font-size:1.6rem}.lb-tools button{width:36px;height:36px;font-size:1.1rem}.lb-zoom{display:none}}
